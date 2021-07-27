@@ -1,8 +1,10 @@
-pragma solidity =0.5.16;
+// SPDX-License-Identifier: GPL-3.0
 
-import '../UniswapV2ERC20.sol';
+pragma solidity=0.6.12;
 
-contract ERC20 is UniswapV2ERC20 {
+import '../DeliciouswapERC20.sol';
+
+contract ERC20 is DeliciouswapERC20 {
     constructor(uint _totalSupply) public {
         _mint(msg.sender, _totalSupply);
     }
