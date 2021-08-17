@@ -29,6 +29,8 @@ contract DeliciouswapPair is DeliciouswapERC20, IDeliciouswapPair {
     uint public override price1CumulativeLast;
     uint public override kLast; // reserve0 * reserve1, as of immediately after the most recent liquidity event
 
+    uint public override approved;
+
     uint private unlocked = 1;
     modifier lock() {
         require(unlocked == 1, 'Deliciouswap: LOCKED');
@@ -62,6 +64,7 @@ contract DeliciouswapPair is DeliciouswapERC20, IDeliciouswapPair {
 
     constructor() public {
         factory = msg.sender;
+        approved = 0;
     }
 
     // called once by the factory at time of deployment
@@ -159,6 +162,7 @@ contract DeliciouswapPair is DeliciouswapERC20, IDeliciouswapPair {
 
     // this low-level function should be called from a contract which performs important safety checks
     function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external override lock {
+        require(1 == approved, 'Deliciouswap: UNAPPROVED_PAIR');
         require(amount0Out > 0 || amount1Out > 0, 'Deliciouswap: INSUFFICIENT_OUTPUT_AMOUNT');
         (uint112 _reserve0, uint112 _reserve1,) = getReserves(); // gas savings
         require(amount0Out < _reserve0 && amount1Out < _reserve1, 'Deliciouswap: INSUFFICIENT_LIQUIDITY');
@@ -199,5 +203,10 @@ contract DeliciouswapPair is DeliciouswapERC20, IDeliciouswapPair {
     // force reserves to match balances
     function sync() external override lock {
         _update(IERC20(token0).balanceOf(address(this)), IERC20(token1).balanceOf(address(this)), reserve0, reserve1);
+    }
+
+    function approve() external override lock {
+        require(msg.sender == IDeliciouswapFactory(factory).feeToSetter(), 'Deliciouswap: FORBIDDEN');
+        approved = 1;
     }
 }
